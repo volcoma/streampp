@@ -139,20 +139,20 @@ struct container_helper
 
 	static void resize(T& val, size_t sz)
 	{
-		constexpr_if(traits::is_resizeable<T>::value)
+		if_constexpr(traits::is_resizeable<T>::value)
 		{
 			resize_impl(val, sz);
 		}
-		constexpr_end_if;
+		end_if_constexpr;
 	}
 
 	static void clear(T& val)
 	{
-		constexpr_if(traits::is_clearable<T>::value)
+		if_constexpr(traits::is_clearable<T>::value)
 		{
 			clear_impl(val);
 		}
-		constexpr_end_if;
+		end_if_constexpr;
 	}
 };
 

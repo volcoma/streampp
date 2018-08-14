@@ -32,31 +32,31 @@ inline ostream_concept<Impl>& ostream_concept<Impl>::operator<<(const T& val)
 {
 	auto& stream_impl = static_cast<Impl&>(*this);
 
-	constexpr_if(traits::is_fundamental<T>::value)
+    if_constexpr(traits::is_fundamental<T>::value)
 	{
 		stream_impl.serialize_fundamental_type(val);
 	}
-	constexpr_else_if(traits::is_container<T>::value)
+	else_if_constexpr(traits::is_container<T>::value)
 	{
-		constexpr_if(traits::is_contiguous<T>::value)
+		if_constexpr(traits::is_contiguous<T>::value)
 		{
 			stream_impl.serialize_contiguous_container(val);
 		}
-		constexpr_else
+		else_constexpr
 		{
 			stream_impl.serialize_container(val);
 		}
-		constexpr_end_if;
+		end_if_constexpr;
 	}
-    constexpr_else_if(std::is_same<T, const char*>::value)
+    else_if_constexpr(std::is_same<T, const char*>::value)
 	{
         stream_impl.serialize_contiguous_container(val);
     }
-	constexpr_else
+	else_constexpr
 	{
 		stream_impl.serialize_user_type(val);
 	}
-	constexpr_end_if;
+	end_if_constexpr;
 
 	return *this;
 }
