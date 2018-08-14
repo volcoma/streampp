@@ -4,6 +4,8 @@ set(target_name streampp)
 
 add_library(${target_name} ${libsrc})
 
+target_link_libraries(${target_name} PUBLIC hpp)
+
 target_include_directories(${target_name}
     PUBLIC
 		${CMAKE_CURRENT_SOURCE_DIR}/..

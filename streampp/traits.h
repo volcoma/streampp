@@ -1,11 +1,12 @@
 #pragma once
-#include "detail/type_traits.hpp"
-#include "detail/utility.hpp"
+#include <cstring>
+#include <hpp/type_traits.hpp>
+#include <hpp/utility.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
 
-namespace nonstd
+namespace hpp
 {
 
 template <class C>
@@ -23,7 +24,7 @@ inline std::size_t size(const char* c) noexcept
 {
 	return std::strlen(c);
 }
-} // namespace nonstd
+} // namespace hpp
 
 namespace traits
 {
@@ -73,7 +74,7 @@ using has_begin = decltype(std::begin(std::declval<const T>()));
 template <typename T>
 using has_end = decltype(std::end(std::declval<const T>()));
 template <typename T>
-using has_size = decltype(nonstd::size(std::declval<const T>()));
+using has_size = decltype(hpp::size(std::declval<const T>()));
 template <typename T>
 using has_clear = decltype(std::declval<T>().clear());
 template <typename T>
@@ -85,30 +86,29 @@ template <typename T>
 using has_mapped_type = typename T::mapped_type;
 
 template <typename T>
-using is_range = nonstd::conjunction<nonstd::is_detected<has_begin, T>, nonstd::is_detected<has_end, T>>;
+using is_range = hpp::conjunction<hpp::is_detected<has_begin, T>, hpp::is_detected<has_end, T>>;
 
 template <typename T>
-using is_container = nonstd::conjunction<is_range<T>, nonstd::is_detected<has_size, T>>;
+using is_container = hpp::conjunction<is_range<T>, hpp::is_detected<has_size, T>>;
 
 template <typename T>
 using is_contiguous = has_contiguous_storage<T>;
 
 template <typename T>
 using is_associative =
-	nonstd::conjunction<nonstd::is_detected<has_key_type, T>, nonstd::is_detected<has_mapped_type, T>>;
+	hpp::conjunction<hpp::is_detected<has_key_type, T>, hpp::is_detected<has_mapped_type, T>>;
 
 template <typename T>
-using is_clearable = nonstd::conjunction<is_container<T>, nonstd::is_detected<has_clear, T>>;
+using is_clearable = hpp::conjunction<is_container<T>, hpp::is_detected<has_clear, T>>;
 
 template <typename T>
-using is_resizeable = nonstd::conjunction<is_container<T>, nonstd::is_detected<has_resize, T>>;
+using is_resizeable = hpp::conjunction<is_container<T>, hpp::is_detected<has_resize, T>>;
 
 template <typename T>
-using is_fundamental = nonstd::disjunction<std::is_fundamental<T>, std::is_enum<T>>;
+using is_fundamental = hpp::disjunction<std::is_fundamental<T>, std::is_enum<T>>;
 
 template <typename T>
-using is_integral = nonstd::disjunction<std::is_fundamental<T>, std::is_enum<T>>;
-
+using is_integral = hpp::disjunction<std::is_fundamental<T>, std::is_enum<T>>;
 
 template <class Iterator>
 struct iterator_value
@@ -128,12 +128,20 @@ struct range_underlying_value<const char*> : iterator_value<const char*>
 template <typename T>
 struct container_helper
 {
+	static void resize_impl(T& val, size_t sz)
+	{
+		val.resize(sz);
+	}
+	static void clear_impl(T& val)
+	{
+		val.clear();
+	}
 
 	static void resize(T& val, size_t sz)
 	{
 		constexpr_if(traits::is_resizeable<T>::value)
 		{
-			val.resize(sz);
+			resize_impl(val, sz);
 		}
 		constexpr_end_if;
 	}
@@ -142,7 +150,7 @@ struct container_helper
 	{
 		constexpr_if(traits::is_clearable<T>::value)
 		{
-			val.clear();
+			clear_impl(val);
 		}
 		constexpr_end_if;
 	}

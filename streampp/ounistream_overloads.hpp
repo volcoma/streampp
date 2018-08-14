@@ -15,7 +15,7 @@ template <typename... Args>
 ounistream& operator<<(ounistream& stream, const std::tuple<Args...>& container)
 {
 	std::cout << "begin tuple type" << std::endl;
-	nonstd::for_each(container, [&stream](const auto& elem) { stream << elem; });
+	hpp::for_each(container, [&stream](const auto& elem) { stream << elem; });
 	std::cout << "end tuple type" << std::endl;
 	return stream;
 }
