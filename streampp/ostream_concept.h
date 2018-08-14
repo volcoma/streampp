@@ -10,108 +10,55 @@ namespace stream
 template <typename Impl>
 struct ostream_concept
 {
+	template <typename T>
+	void serialize_user_type(const T&);
+
+    template <typename T>
+    ostream_concept& operator<<(const T& val);
 };
 
-// clang-format off
-template <typename Impl, typename T>
-std::enable_if_t
-<
-traits::is_fundamental_v<T> == true,
-ostream_concept<Impl>&
->
-// clang-format on
-operator<<(ostream_concept<Impl>& stream, const T&)
+template <typename Impl>
+template <typename T>
+inline void ostream_concept<Impl>::serialize_user_type(const T&)
 {
-	std::cout << "fundamental type" << std::endl;
-
-	return stream;
+    using has_overloaded_operator = std::is_same<T, T>;
+    static_assert(!has_overloaded_operator::value, "No overload of [operator<<] is found for this type. "
+                                                   "Declaration should be visible at the call site.");
 }
 
-template <typename Impl, typename... Args>
-ostream_concept<Impl>& operator<<(ostream_concept<Impl>& stream, const std::tuple<Args...>& container)
+template <typename Impl>
+template <typename T>
+inline ostream_concept<Impl>& ostream_concept<Impl>::operator<<(const T& val)
 {
-	std::cout << "begin tuple type" << std::endl;
+	auto& stream_impl = static_cast<Impl&>(*this);
 
-	nonstd::for_each(container, [&stream](const auto& elem) { stream << elem; });
-
-	std::cout << "end tuple type" << std::endl;
-
-	return stream;
-}
-template <typename Impl, typename T1, typename T2>
-ostream_concept<Impl>& operator<<(ostream_concept<Impl>& stream, const std::pair<T1, T2>& p)
-{
-	std::cout << "begin pair type" << std::endl;
-
-	stream << p.first;
-	stream << p.second;
-
-	std::cout << "end pair type" << std::endl;
-
-	return stream;
-}
-
-// clang-format off
-template <typename Impl, typename T>
-std::enable_if_t
-<
-traits::is_container_v<T> == true &&
-traits::is_contiguous_v<T> == true,
-ostream_concept<Impl>&
->
-// clang-format on
-operator<<(ostream_concept<Impl>& stream, const T& container)
-{
-	std::cout << "begin contiguous container" << std::endl;
-
-	auto sz = nonstd::size(container);
-	stream << sz;
-	// serialize_sequential(stream, container.data(), sz * sizeof(T::value_type));
-	std::cout << "memcpy" << std::endl;
-
-	std::cout << "end contiguous container" << std::endl;
-
-	return stream;
-}
-
-// clang-format off
-template <typename Impl, typename T>
-std::enable_if_t
-<
-traits::is_container_v<T> == true &&
-traits::is_contiguous_v<T> == false,
-ostream_concept<Impl>&
->
-// clang-format on
-operator<<(ostream_concept<Impl>& stream, const T& container)
-{
-	std::cout << "begin non contiguous container" << std::endl;
-
-	auto sz = nonstd::size(container);
-	stream << sz;
-	for(const auto& elem : container)
+	constexpr_if(traits::is_fundamental<T>::value)
 	{
-		stream << elem;
+		stream_impl.serialize_fundamental_type(val);
 	}
+	constexpr_else_if(traits::is_container<T>::value)
+	{
+		constexpr_if(traits::is_contiguous<T>::value)
+		{
+			stream_impl.serialize_contiguous_container(val);
+		}
+		constexpr_else
+		{
+			stream_impl.serialize_container(val);
+		}
+		constexpr_end_if;
+	}
+    constexpr_else_if(std::is_same<T, const char*>::value)
+	{
+        stream_impl.serialize_contiguous_container(val);
+    }
+	constexpr_else
+	{
+		stream_impl.serialize_user_type(val);
+	}
+	constexpr_end_if;
 
-	std::cout << "end non contiguous container" << std::endl;
-
-	return stream;
+	return *this;
 }
 
-// clang-format off
-template <typename Impl, typename T>
-std::enable_if_t
-<
-traits::is_custom_v<T> == true,
-ostream_concept<Impl>&
->
-// clang-format on
-operator<<(ostream_concept<Impl>& stream, const T&)
-{
-	using has_overloaded_operator = std::is_same<T, T>;
-	static_assert(!has_overloaded_operator::value, "No overload of [operator<<] is found for this type. "
-												   "Declaration should be visible at the call site.");
-	return stream;
-}
-}
+} // namespace stream

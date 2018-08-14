@@ -9,16 +9,21 @@ namespace nonstd
 {
 
 template <class C>
-constexpr auto size(const C& c) -> decltype(c.size())
+inline constexpr auto size(const C& c) -> decltype(c.size())
 {
 	return c.size();
 }
 template <class T, std::size_t N>
-constexpr std::size_t size(const T (&)[N]) noexcept
+inline constexpr std::size_t size(const T (&)[N]) noexcept
 {
 	return N;
 }
+
+inline std::size_t size(const char* c) noexcept
+{
+	return std::strlen(c);
 }
+} // namespace nonstd
 
 namespace traits
 {
@@ -58,6 +63,11 @@ struct has_contiguous_storage<T[N]> : std::true_type
 {
 };
 
+template <>
+struct has_contiguous_storage<const char*> : std::true_type
+{
+};
+
 template <typename T>
 using has_begin = decltype(std::begin(std::declval<const T>()));
 template <typename T>
@@ -77,75 +87,65 @@ using has_mapped_type = typename T::mapped_type;
 template <typename T>
 using is_range = nonstd::conjunction<nonstd::is_detected<has_begin, T>, nonstd::is_detected<has_end, T>>;
 
-template <class T>
-static constexpr auto is_range_v = is_range<T>::value;
-
 template <typename T>
 using is_container = nonstd::conjunction<is_range<T>, nonstd::is_detected<has_size, T>>;
 
-template <class T>
-static constexpr auto is_container_v = is_container<T>::value;
-
 template <typename T>
 using is_contiguous = has_contiguous_storage<T>;
-
-template <class T>
-static constexpr auto is_contiguous_v = is_contiguous<T>::value;
 
 template <typename T>
 using is_associative =
 	nonstd::conjunction<nonstd::is_detected<has_key_type, T>, nonstd::is_detected<has_mapped_type, T>>;
 
-template <class T>
-static constexpr auto is_associative_v = is_associative<T>::value;
-
 template <typename T>
 using is_clearable = nonstd::conjunction<is_container<T>, nonstd::is_detected<has_clear, T>>;
-
-template <class T>
-static constexpr auto is_clearable_v = is_clearable<T>::value;
 
 template <typename T>
 using is_resizeable = nonstd::conjunction<is_container<T>, nonstd::is_detected<has_resize, T>>;
 
-template <class T>
-static constexpr auto is_resizeable_v = is_resizeable<T>::value;
-
 template <typename T>
 using is_fundamental = nonstd::disjunction<std::is_fundamental<T>, std::is_enum<T>>;
 
-template <class T>
-static constexpr auto is_fundamental_v = is_fundamental<T>::value;
-
 template <typename T>
-using is_custom = nonstd::negation<nonstd::disjunction<is_fundamental<T>, is_container<T>>>;
+using is_integral = nonstd::disjunction<std::is_fundamental<T>, std::is_enum<T>>;
 
+
+template <class Iterator>
+struct iterator_value
+{
+	using type = typename std::iterator_traits<Iterator>::value_type;
+};
 template <class T>
-static constexpr auto is_custom_v = is_custom<T>::value;
+struct range_underlying_value : iterator_value<decltype(std::cbegin(std::declval<T>()))>
+{
+};
 
-
+template <>
+struct range_underlying_value<const char*> : iterator_value<const char*>
+{
+};
 
 template <typename T>
 struct container_helper
 {
 
-	static void resize(T& cont, size_t sz, std::true_type)
+	static void resize(T& val, size_t sz)
 	{
-		cont.resize(sz);
+		constexpr_if(traits::is_resizeable<T>::value)
+		{
+			val.resize(sz);
+		}
+		constexpr_end_if;
 	}
 
-	static void resize(T&, size_t, std::false_type)
+	static void clear(T& val)
 	{
-	}
-
-	static void clear(T& cont, std::true_type)
-	{
-		cont.clear();
-	}
-
-	static void clear(T&, std::false_type)
-	{
+		constexpr_if(traits::is_clearable<T>::value)
+		{
+			val.clear();
+		}
+		constexpr_end_if;
 	}
 };
 
-}
+} // namespace traits
