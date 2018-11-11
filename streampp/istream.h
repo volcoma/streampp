@@ -6,7 +6,7 @@
 namespace stream
 {
 
-struct iunistream : istream_concept<iunistream>
+struct istream : istream_concept<istream>
 {
 	template <typename T>
 	void deserialize_fundamental_type(T& /*val*/);
@@ -20,26 +20,25 @@ struct iunistream : istream_concept<iunistream>
 	template <typename T>
 	void deserialize_container(T& container);
 
-    void deserialize_container_size(size_t& sz);
+	void deserialize_container_size(size_t& sz);
 };
 
-inline void iunistream::deserialize_container_size(size_t& sz)
+inline void istream::deserialize_container_size(size_t& sz)
 {
-    uint32_t s = 0;
-    *this >> s;
+	uint32_t s = 0;
+	*this >> s;
 
-    sz = size_t(s);
-}
-
-
-template <typename T>
-inline void iunistream::deserialize_fundamental_type(T& /*val*/)
-{
-	std::cout << "fundamental type" << std::endl;
+	sz = size_t(s);
 }
 
 template <typename T>
-inline void iunistream::deserialize_contiguous_container(T& container)
+inline void istream::deserialize_fundamental_type(T& /*val*/)
+{
+	//std::cout << "fundamental type" << std::endl;
+}
+
+template <typename T>
+inline void istream::deserialize_contiguous_container(T& container)
 {
 	// read size
 	size_t sz = 0;
@@ -50,15 +49,16 @@ inline void iunistream::deserialize_contiguous_container(T& container)
 }
 
 template <typename T>
-inline void iunistream::deserialize_associative_container(T& container)
+inline void istream::deserialize_associative_container(T& container)
 {
 	size_t sz = 0;
-    deserialize_container_size(sz);
+	deserialize_container_size(sz);
 
 	traits::container_helper<T>::clear(container);
 	for(size_t i = 0; i < sz; ++i)
 	{
 		std::pair<typename T::key_type, typename T::mapped_type> element;
+
 		*this >> element;
 
 		container.emplace(std::move(element));
@@ -66,10 +66,10 @@ inline void iunistream::deserialize_associative_container(T& container)
 }
 
 template <typename T>
-void iunistream::deserialize_container(T& container)
+void istream::deserialize_container(T& container)
 {
 	size_t sz = 0;
-    deserialize_container_size(sz);
+	deserialize_container_size(sz);
 
 	traits::container_helper<T>::resize(container, sz);
 	for(auto& element : container)
@@ -81,4 +81,4 @@ void iunistream::deserialize_container(T& container)
 
 #endif
 
-#include "iunistream_overloads.hpp"
+#include "istream_overloads.hpp"

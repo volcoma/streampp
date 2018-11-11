@@ -24,18 +24,47 @@ inline std::size_t size(const char* c) noexcept
 {
 	return std::strlen(c);
 }
+
+template <class C>
+inline constexpr auto data(const C& c) -> decltype(c.data())
+{
+	return c.size();
+}
+template <class T, std::size_t N>
+inline constexpr const T* data(const T (&)[N]) noexcept
+{
+	return N;
+}
+
+inline const char* data(const char* c) noexcept
+{
+	return c;
+}
 } // namespace hpp
 
 namespace traits
 {
 
-template <typename T>
-struct has_contiguous_storage : std::false_type
-{
-};
 
-template <typename T, typename U>
-struct has_contiguous_storage<std::vector<T, U>> : std::true_type
+template <typename T>
+using has_begin = decltype(std::begin(std::declval<const T>()));
+template <typename T>
+using has_end = decltype(std::end(std::declval<const T>()));
+template <typename T>
+using has_data = decltype(hpp::data(std::declval<const T>()));
+template <typename T>
+using has_size = decltype(hpp::size(std::declval<const T>()));
+template <typename T>
+using has_clear = decltype(std::declval<T>().clear());
+template <typename T>
+using has_resize = decltype(std::declval<T>().resize(std::declval<size_t>()));
+template <typename T>
+using has_key_type = typename T::key_type;
+template <typename T>
+using has_mapped_type = typename T::mapped_type;
+
+template <typename T>
+struct has_contiguous_storage : hpp::conjunction<hpp::is_detected<has_data, T>, hpp::is_detected<has_size, T>>
 {
 };
 
@@ -43,47 +72,6 @@ template <typename T>
 struct has_contiguous_storage<std::vector<bool, T>> : std::false_type
 {
 };
-
-template <typename T, typename U, typename V>
-struct has_contiguous_storage<std::basic_string<T, U, V>> : std::true_type
-{
-};
-
-template <typename T, std::size_t N>
-struct has_contiguous_storage<std::array<T, N>> : std::true_type
-{
-};
-
-template <typename T>
-struct has_contiguous_storage<T[]> : std::true_type
-{
-};
-
-template <typename T, std::size_t N>
-struct has_contiguous_storage<T[N]> : std::true_type
-{
-};
-
-template <>
-struct has_contiguous_storage<const char*> : std::true_type
-{
-};
-
-template <typename T>
-using has_begin = decltype(std::begin(std::declval<const T>()));
-template <typename T>
-using has_end = decltype(std::end(std::declval<const T>()));
-template <typename T>
-using has_size = decltype(hpp::size(std::declval<const T>()));
-template <typename T>
-using has_clear = decltype(std::declval<T>().clear());
-template <typename T>
-using has_resize = decltype(std::declval<T>().resize(std::declval<size_t>()));
-
-template <typename T>
-using has_key_type = typename T::key_type;
-template <typename T>
-using has_mapped_type = typename T::mapped_type;
 
 template <typename T>
 using is_range = hpp::conjunction<hpp::is_detected<has_begin, T>, hpp::is_detected<has_end, T>>;
@@ -108,7 +96,7 @@ template <typename T>
 using is_fundamental = hpp::disjunction<std::is_fundamental<T>, std::is_enum<T>>;
 
 template <typename T>
-using is_integral = hpp::disjunction<std::is_fundamental<T>, std::is_enum<T>>;
+using is_integral = hpp::disjunction<std::is_integral<T>, std::is_enum<T>>;
 
 template <class Iterator>
 struct iterator_value

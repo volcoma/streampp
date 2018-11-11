@@ -4,3 +4,9 @@
 [submodule "hpp"]
 	path = hpp
 	url = https://github.com/volcoma/hpp
+[submodule "3rdparty/suitepp"]
+	path = 3rdparty/suitepp
+	url = https://github.com/volcoma/suitepp.git
+[submodule "3rdparty/hpp"]
+	path = 3rdparty/hpp
+	url = https://github.com/volcoma/hpp.git

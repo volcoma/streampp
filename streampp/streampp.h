@@ -1,4 +1,4 @@
 #pragma once
 
-#include "iunistream.h"
-#include "ounistream.h"
+#include "istream.h"
+#include "ostream.h"

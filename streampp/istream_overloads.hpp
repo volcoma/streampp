@@ -1,27 +1,27 @@
 #pragma once
 
-#include "iunistream.h"
-#include <vector>
-#include <tuple>
+#include "istream.h"
 #include <iterator>
+#include <tuple>
+#include <vector>
 
 namespace stream
 {
 
-inline iunistream& operator>>(iunistream& stream, std::vector<bool>& container)
+inline istream& operator>>(istream& stream, std::vector<bool>& container)
 {
 	std::vector<uint8_t> vbytes;
 	stream >> vbytes;
 
-    container.reserve(vbytes.size());
-    //std::copy(std::begin(vbytes), std::end(vbytes), std::back_inserter(container));
-    //container = std::vector<bool>(vbytes.begin(), vbytes.end());
+	container.reserve(vbytes.size());
+	// std::copy(std::begin(vbytes), std::end(vbytes), std::back_inserter(container));
+	// container = std::vector<bool>(vbytes.begin(), vbytes.end());
 
 	return stream;
 }
 
 template <typename T1, typename T2>
-inline iunistream& operator>>(iunistream& stream, std::pair<T1, T2>& p)
+inline istream& operator>>(istream& stream, std::pair<T1, T2>& p)
 {
 	std::cout << "begin pair type" << std::endl;
 
@@ -34,7 +34,7 @@ inline iunistream& operator>>(iunistream& stream, std::pair<T1, T2>& p)
 }
 
 template <typename... Args>
-inline iunistream& operator>>(iunistream& stream, std::tuple<Args...>& container)
+inline istream& operator>>(istream& stream, std::tuple<Args...>& container)
 {
 	std::cout << "begin tuple type" << std::endl;
 
