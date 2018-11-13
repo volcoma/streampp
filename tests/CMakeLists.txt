@@ -1,6 +1,6 @@
 message(STATUS "Enabled tests.")
 
-set(target_name streampp_tests)
+set(target_name streampp_test)
 
 file(GLOB_RECURSE libsrc *.h *.cpp *.hpp *.c *.cc)
 
@@ -16,3 +16,6 @@ set_target_properties(${target_name} PROPERTIES
 
 include(target_warning_support)
 set_warning_level(${target_name} ultra)
+
+enable_testing()
+add_test(NAME ${target_name} COMMAND ${target_name})
