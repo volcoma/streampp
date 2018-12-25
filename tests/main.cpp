@@ -133,7 +133,6 @@ void test_traits()
         EXPECT((std::is_same<traits::range_underlying_value<std::unordered_set<std::int8_t>>::type, std::int8_t>::value == true));
         EXPECT((std::is_same<traits::range_underlying_value<std::deque<std::int8_t>>::type, std::int8_t>::value == true));
 
-
     });
 }
 
