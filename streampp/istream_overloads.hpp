@@ -14,8 +14,7 @@ inline istream& operator>>(istream& stream, std::vector<bool>& container)
 	stream >> vbytes;
 
 	container.reserve(vbytes.size());
-	// std::copy(std::begin(vbytes), std::end(vbytes), std::back_inserter(container));
-	// container = std::vector<bool>(vbytes.begin(), vbytes.end());
+	container = std::vector<bool>(vbytes.begin(), vbytes.end());
 
 	return stream;
 }

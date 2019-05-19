@@ -11,7 +11,7 @@ template <typename Impl>
 struct istream_concept
 {
 	template <typename T>
-	void deserialize_user_type(T&);
+	void deserialize_custom(T&);
 
 	template <typename T>
 	istream_concept<Impl>& operator>>(T& val);
@@ -19,12 +19,13 @@ struct istream_concept
 
 template <typename Impl>
 template <typename T>
-inline void istream_concept<Impl>::deserialize_user_type(T&)
+inline void istream_concept<Impl>::deserialize_custom(T&)
 {
 	using has_overloaded_operator = std::is_same<T, T>;
 	static_assert(!has_overloaded_operator::value, "No overload of [operator>>] is found for this type. "
 												   "Declaration should be visible at the call site.");
 }
+
 
 template <typename Impl>
 template <typename T>
@@ -34,7 +35,7 @@ inline istream_concept<Impl>& istream_concept<Impl>::operator>>(T& val)
 
 	if_constexpr(traits::is_fundamental<T>::value)
 	{
-		stream_impl.deserialize_fundamental_type(val);
+		stream_impl.deserialize_fundamental(val);
 	}
 	else_if_constexpr(traits::is_container<T>::value)
 	{
@@ -54,7 +55,7 @@ inline istream_concept<Impl>& istream_concept<Impl>::operator>>(T& val)
 	}
 	else_constexpr
 	{
-		stream_impl.deserialize_user_type(val);
+		stream_impl.deserialize_custom(val);
 	}
 	end_if_constexpr;
 

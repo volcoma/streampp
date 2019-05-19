@@ -28,7 +28,7 @@ inline std::size_t size(const char* c) noexcept
 template <class C>
 inline constexpr auto data(const C& c) -> decltype(c.data())
 {
-	return c.size();
+	return c.data();
 }
 template <class T, std::size_t N>
 inline constexpr const T* data(const T (&)[N]) noexcept
@@ -129,7 +129,7 @@ struct container_helper
 	{
 		if_constexpr(traits::is_resizeable<T>::value)
 		{
-			resize_impl(val, sz);
+			container_helper<T>::resize_impl(val, sz);
 		}
 		end_if_constexpr;
 	}
@@ -138,7 +138,7 @@ struct container_helper
 	{
 		if_constexpr(traits::is_clearable<T>::value)
 		{
-			clear_impl(val);
+			container_helper<T>::clear_impl(val);
 		}
 		end_if_constexpr;
 	}

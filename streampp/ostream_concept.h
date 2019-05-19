@@ -11,7 +11,7 @@ template <typename Impl>
 struct ostream_concept
 {
 	template <typename T>
-	void serialize_user_type(const T&);
+	void serialize_custom(const T&);
 
 	template <typename T>
 	ostream_concept& operator<<(const T& val);
@@ -19,7 +19,7 @@ struct ostream_concept
 
 template <typename Impl>
 template <typename T>
-inline void ostream_concept<Impl>::serialize_user_type(const T&)
+inline void ostream_concept<Impl>::serialize_custom(const T&)
 {
 	using has_overloaded_operator = std::is_same<T, T>;
 	static_assert(!has_overloaded_operator::value, "No overload of [operator<<] is found for this type. "
@@ -34,7 +34,7 @@ inline ostream_concept<Impl>& ostream_concept<Impl>::operator<<(const T& val)
 
 	if_constexpr(traits::is_fundamental<T>::value)
 	{
-		stream_impl.serialize_fundamental_type(val);
+		stream_impl.serialize_fundamental(val);
 	}
 	else_if_constexpr(traits::is_container<T>::value)
 	{
@@ -54,7 +54,7 @@ inline ostream_concept<Impl>& ostream_concept<Impl>::operator<<(const T& val)
 	}
 	else_constexpr
 	{
-		stream_impl.serialize_user_type(val);
+		stream_impl.serialize_custom(val);
 	}
 	end_if_constexpr;
 
